@@ -57,7 +57,7 @@ When more than one engine can produce the same target (e.g. DOCX → PDF), the r
        python3 python3-gi gir1.2-gtk-3.0 python3-nautilus \
        zenity libnotify-bin
    ```
-   The web API additionally needs Flask: `pip install flask`.
+   The web API additionally needs Flask: `sudo apt install -y python3-flask`. (Modern Debian/Ubuntu reject `pip install flask` system-wide under PEP 668 — use the apt package, or set up a virtualenv if you need a newer Flask.)
 
 3. **Run the setup script.** It installs the Nautilus right-click script and extension, a desktop launcher, MIME associations, and a `file-converter` command-line link:
    ```bash
