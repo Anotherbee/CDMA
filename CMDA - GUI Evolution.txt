@@ -1,0 +1,109 @@
+**Release Notes: File Converter version 5.5**
+**Date:** June 15, 2025
+**Project:** Character-based Menu-Driven Application (CMDA) - GUI Evolution
+
+This release marks the successful transition of the File Converter utility from a character-based Python application to a true, fully integrated GTK graphical user interface (GUI). The application is now more user-friendly, robust, and seamlessly integrated into the GNOME desktop environment via Nautilus.
+
+#### **Major New Features & Enhancements**
+
+* **True Graphical User Interface (GUI):**
+    * The application is now a native GTK program, eliminating the need for a terminal window to be launched for user interaction.
+    * The UI provides a file selection button, a dynamic dropdown for conversion formats, a convert button, and a progress bar for user feedback.
+
+* **Nautilus Integration Overhaul:**
+    * The right-click context menu script (`Convert with File Converter`) now launches the GUI directly.
+    * The application correctly loads the file(s) selected in Nautilus upon launch.
+
+* **Enhanced User Feedback:**
+    * For multi-file selections, the GUI now displays a tooltip listing all selected filenames when the user hovers over the "Selected: X files" label.
+    * Clear, user-friendly dialog boxes report conversion success or provide detailed error messages from the conversion engines.
+
+* **Improved Conversion Engine Logic:**
+    * **PDF Source Conversion:** The LibreOffice engine is now explicitly instructed on how to handle importing PDF files, fixing a major bug where conversions from PDF would fail.
+    * **Unicode Support in PDFs:** Pandoc conversions to PDF now use the `xelatex` engine, providing robust support for Unicode characters and preventing failures related to special characters.
+    * **HTML Image Handling:** The application now automatically strips broken or inaccessible remote `<img>` tags from HTML files before conversion, preventing errors and allowing the text content to be successfully converted.
+
+#### **Critical Bug Fixes**
+
+* **Fixed Nautilus Argument Passing:**
+    * Resolved an issue where right-clicking a file in Nautilus would cause the GUI to launch without loading the selected file.
+    * Corrected a bug where the Nautilus script would erroneously pass the current directory as a file to be converted, causing a "is a directory" error from Pandoc.
+    * Fixed a critical bug where file paths containing spaces were not correctly decoded, causing the script to fail silently.
+
+* **Fixed GUI Application Failures:**
+    * Resolved a `GLib-GIO-CRITICAL` error ("This application can not open files") by correctly registering the application to handle file opening from the command line.
+    * Fixed a `Gtk-WARNING` related to the file chooser widget and corrected the UI layout to ensure all elements are visible upon launch.
+
+* **Fixed Conversion Logic Errors:**
+    * Corrected a Pandoc error ("Unknown input format plain") when converting `.txt` files by allowing the engine to auto-detect the format.
+    * Fixed a bug where LibreOffice was not appearing as a valid conversion option for certain file types like HTML and TXT.
+
+---
+### Artifact 2: Updated README.md File
+
+This is the new top-level documentation for the project, reflecting its current state.
+
+---
+
+# File Converter - A Universal Conversion Utility
+
+**Version:** 5.5
+**Environment:** Debian Linux with GNOME Desktop
+**Core Technologies:** Python3, GTK, Pandoc, LibreOffice, FFmpeg
+
+File Converter is a versatile, GUI-based utility for Debian-based systems that simplifies the conversion of documents, images, and media files. It integrates seamlessly with the Nautilus file manager, providing powerful conversion options through a simple right-click.
+
+## Features
+
+* **Intuitive GUI:** A clean, easy-to-use graphical interface built with GTK.
+* **Nautilus Integration:** Right-click any file or group of files and select "Convert with File Converter" to begin.
+* **Broad Format Support:**
+    * **Documents:** DOCX, PDF, HTML, TXT, Markdown, ODT, and more.
+    * **Media:** MP3, WAV, MP4, MKV, GIF, and more.
+    * **Images:** JPG, PNG, WebP, SVG, and more.
+* **Intelligent Engine Selection:** Automatically uses the best tool (Pandoc, LibreOffice, or FFmpeg) for the job.
+* **Robust Error Handling:** Handles problematic files gracefully, including stripping broken images from HTML documents and providing clear error feedback.
+
+## Installation
+
+1.  **Clone or Download:** Place the project files in a directory, for example, `~/file_converter`.
+
+2.  **Install Dependencies:** Open a terminal and run the following command to install the application's core engines and GUI libraries.
+    ```bash
+    sudo apt update
+    sudo apt install pandoc libreoffice ffmpeg python3-gi gir1.2-gtk-3.0 texlive-xetex
+    ```
+
+3.  **Run the Setup Script:** In the terminal, navigate to your project directory and run the setup script. This will automatically install the application into Nautilus and your system's application menu.
+    ```bash
+    cd ~/file_converter
+    ./setup_gui.sh
+    ```
+    The script will confirm a successful installation.
+
+4.  **Restart Nautilus:** To ensure the right-click menu appears, restart the file manager.
+    ```bash
+    nautilus -q
+    ```
+
+## Usage
+
+There are three easy ways to use the File Converter:
+
+**Method 1: Right-Click Conversion (Recommended)**
+1.  Open the Nautilus file manager.
+2.  Right-click on any file or select multiple files and right-click.
+3.  Navigate to the **Scripts** submenu and click **Convert with File Converter**.
+4.  The application will launch with your file(s) pre-loaded. Select your desired output format and click "Convert".
+
+**Method 2: Application Menu**
+1.  Open your system's application launcher (press the `Super` key).
+2.  Search for "File Converter" and click the icon to launch it.
+3.  Use the "Select File(s) to Convert..." button to choose your files.
+
+**Method 3: Command Line**
+1.  Open a terminal.
+2.  Type `file-converter` to launch the GUI.
+3.  Alternatively, pass file paths directly: `file-converter /path/to/my/file.docx`.
+
+---

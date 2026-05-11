@@ -1,0 +1,17 @@
+# Claude Code session state
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Web API runtime directories
+web_uploads/
+web_converted/
+
+# Editor / OS cruft
+.DS_Store
+*.swp
+.vscode/
+.idea/

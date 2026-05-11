@@ -1,0 +1,30 @@
+{
+  "_comment": "Preferred engine when more than one engine offers the same conversion. Edit freely; values must be one of 'Pandoc', 'LibreOffice', 'FFmpeg'. Conversions where only one engine applies are not listed here — they're picked automatically.",
+
+  "html": {
+    "pdf":  "LibreOffice",
+    "docx": "Pandoc",
+    "odt":  "Pandoc"
+  },
+
+  "docx": {
+    "pdf":  "LibreOffice",
+    "odt":  "LibreOffice",
+    "html": "Pandoc",
+    "txt":  "Pandoc"
+  },
+
+  "odt": {
+    "pdf":  "LibreOffice",
+    "docx": "LibreOffice",
+    "html": "Pandoc",
+    "txt":  "Pandoc"
+  },
+
+  "txt": {
+    "pdf":  "Pandoc",
+    "docx": "Pandoc",
+    "odt":  "Pandoc",
+    "html": "Pandoc"
+  }
+}
