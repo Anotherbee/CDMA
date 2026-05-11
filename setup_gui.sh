@@ -401,12 +401,9 @@ main() {
     # Check for required GUI tools
     print_status "Checking GUI dependencies..." 
     
-    if ! command_exists gnome-terminal && ! command_exists xterm; then 
-        print_warning "No suitable terminal emulator found" 
-        print_status "Installing gnome-terminal..." 
-        sudo apt update 
-        sudo apt install -y gnome-terminal 
-    fi
+    # Note: this script must NOT be run with sudo (the EUID check above rejects root).
+    # The blocks below call sudo only when a needed package is missing. If you followed
+    # the README's apt install line they're all no-ops and no password prompt appears.
 
     if ! command_exists zenity; then
         print_status "Installing zenity for GUI dialogs..."
