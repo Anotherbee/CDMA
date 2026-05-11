@@ -43,7 +43,11 @@ When more than one engine can produce the same target (e.g. DOCX → PDF), the r
 
 ## Installation
 
-1. **Place the project files** in a stable location, e.g. `~/file_converter`. The setup script remembers this path via symlinks, so moving the directory later means re-running setup.
+1. **Clone the repository** to a stable location. The setup script wires symlinks back to this directory, so if you move it later you'll need to re-run setup.
+   ```bash
+   git clone https://github.com/Anotherbee/CDMA.git ~/file_converter
+   cd ~/file_converter
+   ```
 
 2. **Install system dependencies:**
    ```bash
@@ -57,7 +61,6 @@ When more than one engine can produce the same target (e.g. DOCX → PDF), the r
 
 3. **Run the setup script.** It installs the Nautilus right-click script and extension, a desktop launcher, MIME associations, and a `file-converter` command-line link:
    ```bash
-   cd ~/file_converter
    ./setup_gui.sh
    ```
 
