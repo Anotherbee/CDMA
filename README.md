@@ -1,9 +1,9 @@
 # File Converter
 
-A universal file conversion utility for Debian/GNOME with a GTK GUI, a context-aware Nautilus right-click submenu, and an optional Flask web API. Wraps Pandoc, LibreOffice, and FFmpeg behind a single, consistent interface.
+A universal file conversion utility for Debian-based Linux with a GTK GUI, a context-aware right-click submenu for **Nautilus (GNOME)** and **Nemo (Cinnamon)**, and an optional Flask web API. Wraps Pandoc, LibreOffice, and FFmpeg behind a single, consistent interface.
 
 **Version:** 5.5
-**Platform:** Debian-based Linux with GNOME (Nautilus 3 or 4)
+**Platform:** Debian-based Linux. Right-click integration works with Nautilus 3/4 (GNOME) and Nemo 3 (Cinnamon — including Cinnamon on Raspberry Pi). The setup script installs into whichever file managers it finds on the system.
 
 ## What it does
 
@@ -20,8 +20,8 @@ When more than one engine can produce the same target (e.g. DOCX → PDF), the r
 ## Features
 
 - **Native GTK GUI** with file picker, format dropdown, and progress feedback.
-- **Nautilus right-click integration** in two layers:
-  - A context-aware `Convert to ▸` submenu (via `nautilus-python`) that lists only valid output formats for the selected file(s), marks the preferred engine, and runs conversions headlessly with desktop notifications.
+- **Right-click integration (Nautilus / Nemo)** in two layers:
+  - A context-aware `Convert to ▸` submenu (via `nautilus-python` or `nemo-python`) that lists only valid output formats for the selected file(s), marks the preferred engine, and runs conversions headlessly with desktop notifications.
   - A `Scripts → Convert with File Converter` fallback that launches the full GUI with files preloaded.
 - **Configurable engine preferences** via a JSON file you can edit at any time.
 - **Markdown → PDF image diagnostics** that warn before converting Markdown with embedded base64 images or very large files, with a one-click option to strip them.
@@ -49,14 +49,21 @@ When more than one engine can produce the same target (e.g. DOCX → PDF), the r
    cd ~/file_converter
    ```
 
-2. **Install system dependencies:**
+2. **Install system dependencies.** The common packages:
    ```bash
    sudo apt update
    sudo apt install -y \
        pandoc libreoffice ffmpeg texlive-xetex \
-       python3 python3-gi gir1.2-gtk-3.0 python3-nautilus \
+       python3 python3-gi gir1.2-gtk-3.0 \
        zenity libnotify-bin
    ```
+   Then add the file-manager binding for your desktop:
+   ```bash
+   sudo apt install -y python3-nautilus    # GNOME
+   sudo apt install -y python3-nemo        # Cinnamon (incl. Raspberry Pi)
+   ```
+   You can install both if the machine has both file managers.
+
    The web API additionally needs Flask: `sudo apt install -y python3-flask`. (Modern Debian/Ubuntu reject `pip install flask` system-wide under PEP 668 — use the apt package, or set up a virtualenv if you need a newer Flask.)
 
 3. **Run the setup script.** It installs the Nautilus right-click script and extension, a desktop launcher, MIME associations, and a `file-converter` command-line link:
@@ -64,9 +71,10 @@ When more than one engine can produce the same target (e.g. DOCX → PDF), the r
    ./setup_gui.sh
    ```
 
-4. **Restart Nautilus** so the extension loads:
+4. **Restart the file manager** so the extension loads:
    ```bash
-   nautilus -q
+   nautilus -q   # on GNOME
+   nemo -q       # on Cinnamon
    ```
 
 5. *(Optional)* **Verify:**
@@ -77,7 +85,7 @@ When more than one engine can produce the same target (e.g. DOCX → PDF), the r
 ## Usage
 
 ### Right-click submenu (fastest)
-In Nautilus, right-click any file (or multi-select files that share an input format) and choose `Convert to ▸`. The submenu shows only valid output formats; the preferred engine is suffixed with `— preferred` when there is a choice. Conversion runs in the background and a desktop notification reports completion.
+In Nautilus or Nemo, right-click any file (or multi-select files that share an input format) and choose `Convert to ▸`. The submenu shows only valid output formats; the preferred engine is suffixed with `— preferred` when there is a choice. Conversion runs in the background and a desktop notification reports completion.
 
 If your selection spans mixed input formats, the submenu hides itself — use the `Scripts → Convert with File Converter` fallback. To use the markdown→PDF image-stripping prompt, pick `Open in File Converter…` at the bottom of the submenu.
 
@@ -129,7 +137,7 @@ Defaults that ship in the file:
 - **Office docs → HTML / TXT**: Pandoc (semantic output, clean text extraction).
 - **TXT → anything** and **HTML → DOCX/ODT**: Pandoc.
 
-After editing, restart Nautilus (`nautilus -q`) so the extension re-reads the file. The GTK GUI picks up changes on next launch.
+After editing, restart your file manager (`nautilus -q` on GNOME, `nemo -q` on Cinnamon) so the extension re-reads the file. The GTK GUI picks up changes on next launch.
 
 ### Per-user state
 `~/.file_converter_config.json` stores the last-used output directory.
@@ -156,4 +164,4 @@ Removes the Nautilus script, the right-click extension symlink, the desktop entr
 - Single-hop conversions only — no graph search across engines.
 - The right-click submenu hides itself for mixed-format selections; fall back to the GUI script.
 - Per-file conversion timeout of 120 seconds (set in `convert_file()`).
-- Right-click integration is GNOME/Nautilus only. KDE / XFCE get the desktop entry and CLI but no right-click menu.
+- Right-click integration covers GNOME (Nautilus) and Cinnamon (Nemo). KDE / XFCE get the desktop entry and CLI but no right-click menu.

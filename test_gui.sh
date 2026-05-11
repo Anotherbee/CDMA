@@ -84,62 +84,50 @@ test_file_converter_script() {
 } 
 
 test_nautilus_integration() {
-    print_header "Testing Nautilus Integration" 
-    
-    NAUTILUS_SCRIPT="$HOME/.local/share/nautilus/scripts/Convert with File Converter" 
-    
-    print_test "Nautilus scripts directory exists" 
-    if [ -d "$HOME/.local/share/nautilus/scripts" ]; then 
-        print_pass
-    else
-        print_fail "Directory not found" 
-    fi
-    
-    print_test "Nautilus script exists" 
-    if [ -f "$NAUTILUS_SCRIPT" ]; then 
-        print_pass
-    else
-        print_fail "Script not found" 
-    fi
-    
-    print_test "Nautilus script is executable" 
-    if [ -x "$NAUTILUS_SCRIPT" ]; then 
-        print_pass
-    else
-        print_fail "Script is not executable" 
-    fi
-    
-    print_test "Nautilus script syntax" 
-    if bash -n "$NAUTILUS_SCRIPT" 2>/dev/null; then 
-        print_pass
-    else
-        print_fail "Syntax errors in script" 
-    fi
-    
-    print_test "Nautilus is available"
-    if command -v nautilus >/dev/null 2>&1; then
-        print_pass
-    else
-        print_skip "Nautilus not installed"
+    print_header "Testing File Manager Integration"
+
+    if ! command -v nautilus >/dev/null 2>&1 && ! command -v nemo >/dev/null 2>&1; then
+        print_test "File manager presence"
+        print_skip "Neither Nautilus nor Nemo installed"
         TESTS_RUN=$((TESTS_RUN - 1))
+        return
     fi
 
-    NAUTILUS_EXT_LINK="$HOME/.local/share/nautilus-python/extensions/file_converter_extension.py"
-
-    print_test "Nautilus submenu extension symlink"
-    if [ -L "$NAUTILUS_EXT_LINK" ] && [ -e "$NAUTILUS_EXT_LINK" ]; then
-        print_pass
-    else
-        print_fail "Extension not symlinked into ~/.local/share/nautilus-python/extensions/"
+    if command -v nautilus >/dev/null 2>&1; then
+        _check_fm "Nautilus" \
+            "$HOME/.local/share/nautilus/scripts/Convert with File Converter" \
+            "$HOME/.local/share/nautilus-python/extensions/file_converter_extension.py" \
+            "Nautilus" "4.0,3.0"
     fi
-
-    print_test "Nautilus Python bindings importable"
-    if python3 -c "import gi; gi.require_version('Nautilus','4.0')" 2>/dev/null \
-       || python3 -c "import gi; gi.require_version('Nautilus','3.0')" 2>/dev/null; then
-        print_pass
-    else
-        print_fail "python3-nautilus not installed"
+    if command -v nemo >/dev/null 2>&1; then
+        _check_fm "Nemo" \
+            "$HOME/.local/share/nemo/scripts/Convert with File Converter" \
+            "$HOME/.local/share/nemo-python/extensions/file_converter_extension.py" \
+            "Nemo" "3.0"
     fi
+}
+
+_check_fm() {
+    local label="$1" script="$2" ext_link="$3" gi_name="$4" gi_vers="$5"
+
+    print_test "$label scripts directory"
+    if [ -d "$(dirname "$script")" ]; then print_pass; else print_fail "Directory not found"; fi
+
+    print_test "$label right-click script"
+    if [ -x "$script" ] && bash -n "$script" 2>/dev/null; then print_pass; else print_fail "Script missing, not executable, or has syntax errors"; fi
+
+    print_test "$label submenu extension symlink"
+    if [ -L "$ext_link" ] && [ -e "$ext_link" ]; then print_pass; else print_fail "Extension not symlinked into $(dirname "$ext_link")/"; fi
+
+    print_test "$label Python bindings importable"
+    local ok=false
+    local IFS=,
+    for v in $gi_vers; do
+        if python3 -c "import gi; gi.require_version('$gi_name','$v')" 2>/dev/null; then
+            ok=true; break
+        fi
+    done
+    if $ok; then print_pass; else print_fail "python3-${gi_name,,} not installed"; fi
 }
 
 test_desktop_entry() {

@@ -1,13 +1,15 @@
 """
-File Converter - Nautilus Extension
+File Converter - Nautilus / Nemo Extension
 Filename: file_converter_extension.py
 
-A Nautilus MenuProvider that adds a context-aware "Convert to ▸" submenu
-to the right-click menu, listing only valid output formats for the
-selected file(s). Conversions run in a background thread; results are
-reported via desktop notifications.
+A MenuProvider that adds a context-aware "Convert to ▸" submenu to the
+file manager's right-click menu, listing only valid output formats for
+the selected file(s). Conversions run in a background thread; results
+are reported via desktop notifications.
 
-Installed by symlinking into ~/.local/share/nautilus-python/extensions/
+Installed by symlinking into:
+  ~/.local/share/nautilus-python/extensions/   (GNOME / Nautilus)
+  ~/.local/share/nemo-python/extensions/       (Cinnamon / Nemo)
 """
 import os
 import sys
@@ -17,12 +19,23 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 import gi
-# Support both Nautilus 3.x (GTK3) and 4.x (GTK4) hosts.
-try:
-    gi.require_version('Nautilus', '4.0')
-except ValueError:
-    gi.require_version('Nautilus', '3.0')
-from gi.repository import Nautilus, GObject
+# Try Nautilus 4.x → Nautilus 3.x → Nemo 3.x. The file is loaded once per
+# host process, so whichever binding is available on this system wins.
+_FM_NAME = None
+for _name, _ver in (('Nautilus', '4.0'), ('Nautilus', '3.0'), ('Nemo', '3.0')):
+    try:
+        gi.require_version(_name, _ver)
+        _FM_NAME = _name
+        break
+    except ValueError:
+        continue
+if _FM_NAME is None:
+    raise ImportError("Neither Nautilus nor Nemo Python bindings are available.")
+if _FM_NAME == 'Nautilus':
+    from gi.repository import Nautilus as FM
+else:
+    from gi.repository import Nemo as FM
+from gi.repository import GObject
 
 # Follow the symlink back to the project directory so we can import the
 # backend engine and locate gui.py for the "Open in File Converter…" item.
@@ -37,7 +50,7 @@ _GUI_SCRIPT = os.path.join(_EXT_DIR, "gui.py")
 
 
 def _path_from_file_info(file_info):
-    """Return a local filesystem path for a Nautilus.FileInfo, or None if remote."""
+    """Return a local filesystem path for a FileInfo (Nautilus or Nemo), or None if remote."""
     uri = file_info.get_uri()
     parsed = urlparse(uri)
     if parsed.scheme != 'file':
@@ -94,7 +107,7 @@ def _run_conversion(files, output_format, engine):
         _notify("File Converter — errors", body, urgency='critical')
 
 
-class FileConverterExtension(GObject.GObject, Nautilus.MenuProvider):
+class FileConverterExtension(GObject.GObject, FM.MenuProvider):
     def get_file_items(self, *args):
         # Nautilus 3.x calls (window, files); 4.x calls (files,). Last arg is always files.
         files = args[-1]
@@ -124,12 +137,12 @@ class FileConverterExtension(GObject.GObject, Nautilus.MenuProvider):
         if not output_options:
             return []
 
-        top = Nautilus.MenuItem(
+        top = FM.MenuItem(
             name='FileConverter::ConvertTo',
             label='Convert to',
             tip=f'Convert {input_format.upper()} → another format',
         )
-        submenu = Nautilus.Menu()
+        submenu = FM.Menu()
         top.set_submenu(submenu)
 
         # Invert the engine→formats dict to format→[engines] so duplicate output
@@ -151,7 +164,7 @@ class FileConverterExtension(GObject.GObject, Nautilus.MenuProvider):
                 label = f'{fmt.upper()}  ({engine})'
                 if multi and engine == preferred:
                     label += '  — preferred'
-                item = Nautilus.MenuItem(
+                item = FM.MenuItem(
                     name=f'FileConverter::{engine}_{fmt}',
                     label=label,
                 )
@@ -161,7 +174,7 @@ class FileConverterExtension(GObject.GObject, Nautilus.MenuProvider):
 
         # Escape hatch: launch the full GUI for advanced cases
         # (e.g. markdown→PDF image-stripping prompt).
-        gui_item = Nautilus.MenuItem(
+        gui_item = FM.MenuItem(
             name='FileConverter::OpenGUI',
             label='Open in File Converter…',
             tip='Launch the full GUI with these files preloaded',
