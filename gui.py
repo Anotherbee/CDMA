@@ -152,30 +152,46 @@ class FileConverterWindow(Gtk.ApplicationWindow):
         
         engine, output_format = active_id.split('|')
         input_format = self.converter.detect_file_format(self.input_files[0])
-        
+
+        # Two scenarios offer an image-strip prompt:
+        #  1. Markdown -> PDF when the source has base64 images or is very large.
+        #  2. DOCX/ODT -> Markdown via Pandoc when the source has embedded images;
+        #     stripping avoids raw <img src="media/..."> tags in the output.
+        prompt_text = None
         if input_format == 'markdown' and output_format == 'pdf':
             diag = self.converter.run_image_diagnostic(self.input_files[0])
             if diag.get('is_problematic'):
-                dialog = Gtk.MessageDialog(
-                    transient_for=self, modal=True, message_type=Gtk.MessageType.WARNING,
-                    buttons=Gtk.ButtonsType.NONE, text="Potential Issue Detected")
-                dialog.format_secondary_text(
-                    f"This Markdown file may contain problematic images or is very large. "
+                prompt_text = (
+                    "This Markdown file may contain problematic images or is very large. "
                     "It's recommended to convert with images removed to prevent errors."
                 )
-                dialog.add_buttons(
-                    "Cancel", Gtk.ResponseType.CANCEL, "Convert Anyway", Gtk.ResponseType.NO,
-                    "_Remove Images & Convert", Gtk.ResponseType.YES)
-                response = dialog.run()
-                dialog.destroy()
+        elif (input_format in ('docx', 'odt') and output_format == 'markdown'
+              and engine == 'Pandoc'
+              and self.converter.has_embedded_images(self.input_files[0], input_format)):
+            prompt_text = (
+                "This document contains embedded images. The resulting markdown will "
+                "include raw <img> tags that may look noisy. Strip them?"
+            )
 
-                if response == Gtk.ResponseType.CANCEL: return
-                remove_images = (response == Gtk.ResponseType.YES)
-                self.start_conversion_thread(output_format, engine, remove_images)
-            else:
-                self.start_conversion_thread(output_format, engine)
-        else:
+        if prompt_text is None:
             self.start_conversion_thread(output_format, engine)
+            return
+
+        dialog = Gtk.MessageDialog(
+            transient_for=self, modal=True, message_type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.NONE, text="Embedded images detected")
+        dialog.format_secondary_text(prompt_text)
+        dialog.add_buttons(
+            "Cancel", Gtk.ResponseType.CANCEL,
+            "Convert Anyway", Gtk.ResponseType.NO,
+            "_Remove Images & Convert", Gtk.ResponseType.YES,
+        )
+        response = dialog.run()
+        dialog.destroy()
+        if response == Gtk.ResponseType.CANCEL:
+            return
+        remove_images = (response == Gtk.ResponseType.YES)
+        self.start_conversion_thread(output_format, engine, remove_images)
 
     def start_conversion_thread(self, output_format, engine, remove_images=False):
         self.set_ui_busy(True)

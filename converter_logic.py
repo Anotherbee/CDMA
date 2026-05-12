@@ -10,8 +10,12 @@ import json
 import subprocess
 import re
 import tempfile
+import zipfile
 from pathlib import Path
 from typing import Dict, List, Tuple
+
+_PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
+_LUA_STRIP_IMAGES = os.path.join(_PROJECT_DIR, 'pandoc_strip_images.lua')
 
 class FileConverter:
     """
@@ -119,6 +123,19 @@ class FileConverter:
             if ext in format_info['extensions']: return format_name
         return None
 
+    def has_embedded_images(self, file_path: str, input_format: str) -> bool:
+        """Peek inside a DOCX or ODT (both are ZIPs) for embedded image files."""
+        if input_format not in ('docx', 'odt'):
+            return False
+        try:
+            with zipfile.ZipFile(file_path) as z:
+                names = z.namelist()
+                if input_format == 'docx':
+                    return any(n.startswith('word/media/') for n in names)
+                return any(n.startswith('Pictures/') for n in names)  # ODT
+        except (zipfile.BadZipFile, OSError):
+            return False
+
     def run_image_diagnostic(self, markdown_file: str) -> Dict:
         try:
             with open(markdown_file, 'r', encoding='utf-8') as f: content = f.read()
@@ -160,6 +177,11 @@ class FileConverter:
                 cmd = ['pandoc']
                 if pandoc_input: cmd.extend(['-f', pandoc_input])
                 cmd.extend(['-t', pandoc_output, '-o', output_file, actual_input])
+                # When stripping images, run a Lua filter that drops Image nodes from
+                # the AST before the writer sees them. Catches DOCX/ODT embedded
+                # images that the regex preprocessing above can't reach (binary input).
+                if remove_images and os.path.exists(_LUA_STRIP_IMAGES):
+                    cmd.extend(['--lua-filter', _LUA_STRIP_IMAGES])
                 if output_format == 'pdf': cmd.insert(1, '--pdf-engine=xelatex')
             elif engine == 'LibreOffice':
                 lo_output = self.libreoffice_format_mapping.get(output_format, output_format)
