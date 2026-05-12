@@ -82,6 +82,43 @@ When more than one engine can produce the same target (e.g. DOCX → PDF), the r
    ./test_gui.sh
    ```
 
+### Raspberry Pi (Cinnamon) quick start
+
+Single copy-paste block that covers steps 1–5 end-to-end for a fresh Pi running Debian + Cinnamon:
+
+```bash
+# 1. Install everything in one apt run
+sudo apt update
+sudo apt install -y \
+    git \
+    pandoc libreoffice ffmpeg texlive-xetex \
+    python3 python3-gi gir1.2-gtk-3.0 \
+    zenity libnotify-bin \
+    nemo-python
+
+# (Optional) Flask web API
+sudo apt install -y python3-flask
+
+# 2. Clone
+git clone https://github.com/Anotherbee/CDMA.git ~/file_converter
+cd ~/file_converter
+
+# 3. Run the setup script (NOT with sudo — the script refuses to run as root)
+./setup_gui.sh
+
+# 4. Restart Nemo so the right-click extension loads
+nemo -q
+
+# 5. (Optional) Verify
+./test_gui.sh
+```
+
+Pi-specific notes:
+- **`texlive-xetex` is ~250 MB.** You only need it for markdown / txt / tex / html → PDF (Pandoc). DOCX/ODT → PDF uses LibreOffice and doesn't need it. You can omit it from the apt line and install on demand if Pandoc ever errors with `xelatex not found`.
+- **`libreoffice` is ~600 MB.** Required for any office-document conversions.
+- Most Cinnamon-on-Pi images ship `git` and `nemo` preinstalled, so those lines may be no-ops — harmless.
+- If anything goes wrong, `./setup_gui.sh --uninstall` reverses every user-level install (Nemo script, extension symlink, desktop entry, `file-converter` CLI link). The apt packages stay.
+
 ## Usage
 
 ### Right-click submenu (fastest)
