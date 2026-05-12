@@ -182,7 +182,7 @@ setup_fm_extension() {
             installed_any=true
             pgrep -x nemo >/dev/null && nemo -q 2>/dev/null || true
         else
-            print_warning "Nemo found but python3-nemo missing — sudo apt install python3-nemo"
+            print_warning "Nemo found but nemo-python missing — sudo apt install nemo-python"
         fi
     fi
 
@@ -435,17 +435,19 @@ main() {
 
     # File-manager Python bindings (required for the context-aware submenu) and
     # notify-send (used by the extension to report conversion results). Install
-    # python3-nautilus / python3-nemo only when the matching file manager is on
+    # python3-nautilus / nemo-python only when the matching file manager is on
     # the system, so headless or single-FM machines don't pull in dead weight.
+    # Note: GNOME's package follows the python3-* convention; Cinnamon's keeps
+    # the older nemo-python name. Don't homogenize — both ship the same gi binding.
     if command_exists nautilus && ! dpkg -s python3-nautilus >/dev/null 2>&1; then
         print_status "Installing python3-nautilus for right-click submenu..."
         sudo apt update
         sudo apt install -y python3-nautilus
     fi
-    if command_exists nemo && ! dpkg -s python3-nemo >/dev/null 2>&1; then
-        print_status "Installing python3-nemo for right-click submenu..."
+    if command_exists nemo && ! dpkg -s nemo-python >/dev/null 2>&1; then
+        print_status "Installing nemo-python for right-click submenu..."
         sudo apt update
-        sudo apt install -y python3-nemo
+        sudo apt install -y nemo-python
     fi
     if ! command_exists notify-send; then
         print_status "Installing libnotify-bin for desktop notifications..."

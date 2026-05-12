@@ -60,7 +60,7 @@ When more than one engine can produce the same target (e.g. DOCX → PDF), the r
    Then add the file-manager binding for your desktop:
    ```bash
    sudo apt install -y python3-nautilus    # GNOME
-   sudo apt install -y python3-nemo        # Cinnamon (incl. Raspberry Pi)
+   sudo apt install -y nemo-python         # Cinnamon (incl. Raspberry Pi)
    ```
    You can install both if the machine has both file managers.
 

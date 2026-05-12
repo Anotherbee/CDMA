@@ -97,18 +97,18 @@ test_nautilus_integration() {
         _check_fm "Nautilus" \
             "$HOME/.local/share/nautilus/scripts/Convert with File Converter" \
             "$HOME/.local/share/nautilus-python/extensions/file_converter_extension.py" \
-            "Nautilus" "4.0,3.0"
+            "Nautilus" "4.0,3.0" "python3-nautilus"
     fi
     if command -v nemo >/dev/null 2>&1; then
         _check_fm "Nemo" \
             "$HOME/.local/share/nemo/scripts/Convert with File Converter" \
             "$HOME/.local/share/nemo-python/extensions/file_converter_extension.py" \
-            "Nemo" "3.0"
+            "Nemo" "3.0" "nemo-python"
     fi
 }
 
 _check_fm() {
-    local label="$1" script="$2" ext_link="$3" gi_name="$4" gi_vers="$5"
+    local label="$1" script="$2" ext_link="$3" gi_name="$4" gi_vers="$5" apt_pkg="$6"
 
     print_test "$label scripts directory"
     if [ -d "$(dirname "$script")" ]; then print_pass; else print_fail "Directory not found"; fi
@@ -127,7 +127,7 @@ _check_fm() {
             ok=true; break
         fi
     done
-    if $ok; then print_pass; else print_fail "python3-${gi_name,,} not installed"; fi
+    if $ok; then print_pass; else print_fail "$apt_pkg not installed"; fi
 }
 
 test_desktop_entry() {
