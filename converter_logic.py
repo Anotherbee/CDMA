@@ -151,6 +151,12 @@ class FileConverter:
             if engine == 'Pandoc':
                 pandoc_input = self.pandoc_format_mapping.get(input_format)
                 pandoc_output = self.pandoc_format_mapping.get(output_format, output_format)
+                # Use CommonMark (rather than Pandoc-extended markdown) for markdown
+                # output — produces cleaner files with fewer raw HTML / span-attribute
+                # passthroughs when the source has features that don't map onto plain
+                # markdown (typical for DOCX/ODT/HTML inputs).
+                if output_format == 'markdown':
+                    pandoc_output = 'commonmark'
                 cmd = ['pandoc']
                 if pandoc_input: cmd.extend(['-f', pandoc_input])
                 cmd.extend(['-t', pandoc_output, '-o', output_file, actual_input])
